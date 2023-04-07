@@ -15,7 +15,6 @@ GREY = (108,108,108)
 
 FPS = 60
 
-import pygame
 
 # classe da peça
 class Piece:
@@ -104,9 +103,9 @@ class Board:
 
         if piece.color == WHITE:
             if row == ROWS - 1:
-                self.green_win = True
+                self.blue_win = True
             elif row == 0:
-                self.blue_win = True      
+                self.green_win = True      
 
     def get_piece(self, row, col):
         return self.board[row][col]
@@ -319,20 +318,25 @@ class Game:
                 self.select(row, col)
         
         piece = self.board.get_piece(row, col)
+        if piece == 0:
+            self.valid_moves = {}
+            largar.play()
         # print("piece")
         if piece != 0 and piece.color == self.turn and self.neutron_moved:
             self.selected = piece
             self.valid_moves = self.board.get_valid_moves(piece)
+            pegar.play()
             # print(self.valid_moves)
             return True
         elif piece != 0 and piece.color == WHITE and not self.neutron_moved:
             self.selected = piece
             self.valid_moves = self.board.get_valid_moves(piece)
+            pegar.play()
             if self.valid_moves == {}:
                 if self.turn == BLUE:
                     self.board.green_win = True
                 elif self.turn == GREEN:
-                    self.board.blue_win = True
+                    self.board.blue_win = True            
             return True
         return False
 
@@ -340,6 +344,7 @@ class Game:
         piece = self.board.get_piece(row, col)
         if self.selected and piece == 0 and (row, col) in self.valid_moves:
             self.board.move(self.selected, row, col)
+            mover.play()
             self.change_turn()
         else:
             return False
@@ -369,6 +374,22 @@ class Game:
 # Jogo em si
 
 pygame.init()
+
+file = 'tomasmusica2.wav'
+
+pygame.mixer.pre_init(44100, -16, 2, 2048)
+pygame.mixer.init()
+
+pegar = pygame.mixer.Sound("pegar.wav")
+mover = pygame.mixer.Sound("mover.wav")
+fim = pygame.mixer.Sound("fim.wav")
+comeco = pygame.mixer.Sound("comeco.wav")
+largar = pygame.mixer.Sound("largar.wav")
+
+pygame.mixer.music.load(file)
+musica = pygame.mixer.music
+musica.set_volume(0.1)
+musica.play(loops = -1)
 
 WIN = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption('Neutron')
@@ -425,11 +446,13 @@ def main():
     run = True
     clock = pygame.time.Clock()
     game = Game(WIN)
+    comeco.play()
 
     while run:
         clock.tick(FPS)
 
         if game.winner() != None:
+            fim.play()
             end_screen(game.winner())
             run = False
 
